@@ -2,6 +2,7 @@ from CBR_currency import get_cbr_currency
 from BBR_currency import get_bbr_currency
 import gspread
 import argparse
+from datetime import datetime
 
 CBR_URL = 'https://www.cbr.ru/scripts/XML_daily.asp?date_req='
 CBR_CURRENCY_CODES = [840, 978, 156]
@@ -26,6 +27,10 @@ CNY_spread = round(today_CBR['CNY'] - today_CNY_BBR['CNY']['buy'], 2)
 
 
 def update_gsheets(USDRUB_cell, CNYRUB_cell, CNYRUB_BBR_cell, today_CNY_BBR, today_CBR):
+    now = datetime.now()
+    now_date = datetime.strftime(now, "%Y-%m-%d")
+    now_time = datetime.strftime(now, "%H:%M:%S")
+
     gc = gspread.oauth()
     sh = gc.open('cash')
 
@@ -43,6 +48,7 @@ def update_gsheets(USDRUB_cell, CNYRUB_cell, CNYRUB_BBR_cell, today_CNY_BBR, tod
                                CNY_spread,  # spread
                                today_CNY_BBR['CNY']['date'],  # actual at date
                                today_CNY_BBR['CNY']['time']  # actual at time
+
                                ], value_input_option='USER_ENTERED'
                               )
     print(today_CBR)
@@ -52,7 +58,9 @@ def update_gsheets(USDRUB_cell, CNYRUB_cell, CNYRUB_BBR_cell, today_CNY_BBR, tod
         today_CBR['USD'],
         today_CBR['CNY'],
         today_CBR['EUR'],
-        today_CBR['date']
+        today_CBR['date'],
+        now_date,  # Date of log
+        now_time  # time of log
         ]
         , value_input_option='USER_ENTERED'
     )
