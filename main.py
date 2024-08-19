@@ -3,6 +3,7 @@ from BBR_currency import get_bbr_currency
 import gspread
 import argparse
 from datetime import datetime
+import pytz
 
 CBR_URL = 'https://www.cbr.ru/scripts/XML_daily.asp?date_req='
 CBR_CURRENCY_CODES = [840, 978, 156]
@@ -27,7 +28,7 @@ CNY_spread = round(today_CBR['CNY'] - today_CNY_BBR['CNY']['buy'], 2)
 
 
 def update_gsheets(USDRUB_cell, CNYRUB_cell, CNYRUB_BBR_cell, today_CNY_BBR, today_CBR):
-    now = datetime.now()
+    now = datetime.now(pytz.timezone('Europe/Moscow')) # Exact Moscow time, not time of server
     now_date = datetime.strftime(now, "%Y-%m-%d")
     now_time = datetime.strftime(now, "%H:%M:%S")
 
