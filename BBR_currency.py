@@ -77,7 +77,7 @@ def get_bbr_currency():
 
     # add values to dict
     CNY_exchange_rates['CNY'] = {'date': actual_at_date,
-                                 'time':actual_at_time,
+                                 'time': actual_at_time,
                                  'buy': CNY_buy,
                                  'sell': CNY_sell
                                  }

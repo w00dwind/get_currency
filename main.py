@@ -1,10 +1,19 @@
 from CBR_currency import get_cbr_currency
 from BBR_currency import get_bbr_currency
 import gspread
-
+import argparse
 
 CBR_URL = 'https://www.cbr.ru/scripts/XML_daily.asp?date_req='
 CBR_CURRENCY_CODES = [840, 978, 156]
+
+parser = argparse.ArgumentParser(
+    prog='get_currency',
+    description='fetch currency from BBR bank and CBR, then fill it to googlesheets',
+    epilog="available modes: -u for update sheet, or without args to just print"
+)
+parser.add_argument('-u', '--update_mode', action='store_true', help='update google sheet')
+args = parser.parse_args()
+# print(args, args.update_mode)
 
 USDRUB_cell = 'J2'
 CNYRUB_cell = 'J3'
@@ -13,29 +22,46 @@ CNYRUB_BBR_cell = 'J4'
 today_CNY_BBR = get_bbr_currency()
 today_CBR = get_cbr_currency(CBR_URL, CBR_CURRENCY_CODES)
 
-print(today_CNY_BBR)
-print(today_CBR)
-
 CNY_spread = round(today_CBR['CNY'] - today_CNY_BBR['CNY']['buy'], 2)
 
-gc = gspread.oauth()
-sh = gc.open('cash')
 
-# fill USDRUB, CNYRUB CBR value
-sh.sheet1.update(USDRUB_cell, today_CBR['USD'])
-sh.sheet1.update(CNYRUB_cell, today_CBR['CNY'])
+def update_gsheets(USDRUB_cell, CNYRUB_cell, CNYRUB_BBR_cell, today_CNY_BBR, today_CBR):
+    gc = gspread.oauth()
+    sh = gc.open('cash')
 
-# fill CNYRUB BBR value
-sh.sheet1.update(CNYRUB_BBR_cell, today_CNY_BBR['CNY']['buy'])
+    # fill USDRUB, CNYRUB CBR value
+    sh.sheet1.update(USDRUB_cell, today_CBR['USD'])
+    sh.sheet1.update(CNYRUB_cell, today_CBR['CNY'])
 
-worksheet_list = sh.worksheet('log')
-worksheet_list.append_row(['CNYRUB_BBR', # name
-                          today_CNY_BBR['CNY']['buy'],  # BBR value
-                          CNY_spread,                   # spread
-                          today_CNY_BBR['CNY']['date'],  # actual at date
-                           today_CNY_BBR['CNY']['time']  # actual at time
-                           ]
-                          )
+    # fill CNYRUB BBR value
+    sh.sheet1.update(CNYRUB_BBR_cell, today_CNY_BBR['CNY']['buy'])
 
+    # update log sheet
+    worksheet_list = sh.worksheet('log')
+    worksheet_list.append_row(['CNYRUB_BBR',  # name
+                               today_CNY_BBR['CNY']['buy'],  # BBR value
+                               CNY_spread,  # spread
+                               today_CNY_BBR['CNY']['date'],  # actual at date
+                               today_CNY_BBR['CNY']['time']  # actual at time
+                               ], value_input_option='USER_ENTERED'
+                              )
+    print(today_CBR)
 
+    worksheet_list = sh.worksheet('CBR_currency_log')
+    worksheet_list.append_row([
+        today_CBR['USD'],
+        today_CBR['CNY'],
+        today_CBR['EUR'],
+        today_CBR['date']
+        ]
+        , value_input_option='USER_ENTERED'
+    )
 
+    print('sheet updated successfully')
+
+if args.update_mode:
+    update_gsheets(USDRUB_cell, CNYRUB_cell, CNYRUB_BBR_cell, today_CNY_BBR, today_CBR)
+else:
+    print(today_CNY_BBR)
+    print(today_CBR)
+    print(f"CNY spread is: {CNY_spread}")

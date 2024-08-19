@@ -2,7 +2,7 @@ from typing import List
 import requests
 from bs4 import BeautifulSoup
 import xml.etree.ElementTree as ET
-
+import datetime
 
 def get_cbr_currency(url: str,
                      currency_codes: List[int]) -> dict:
@@ -11,9 +11,11 @@ def get_cbr_currency(url: str,
     req = requests.get(url)
     soup = BeautifulSoup(req.text.encode("windows-1251"), 'xml')
 
-    cbr_tree = ET.fromstring(req.text)
 
     all_currency = soup.findAll('Valute')
+    actual_date = ''.join([i.get('Date') for i in soup.find_all('ValCurs')])
+    # actual_date = datetime.strptime(actual_date, '%d.%m.%Y')
+    cbr_currency_dct['date'] = actual_date
 
     for i in all_currency:
         if int(i.find('NumCode').text) in currency_codes:
