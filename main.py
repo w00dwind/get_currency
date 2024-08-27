@@ -32,7 +32,12 @@ def update_gsheets(USDRUB_cell, CNYRUB_cell, CNYRUB_BBR_cell, today_CNY_BBR, tod
     now_date = datetime.strftime(now, "%Y-%m-%d")
     now_time = datetime.strftime(now, "%H:%M:%S")
 
-    gc = gspread.oauth()
+    # gc = gspread.oauth(
+    # credentials_filename='secrets/credentials.json',
+    # authorized_user_filename='secrets/authorized_user.json'
+    # )
+
+    gc = gspread.service_account(filename='secrets/currency_service_key.json')
     sh = gc.open('cash')
 
     # fill USDRUB, CNYRUB CBR value
