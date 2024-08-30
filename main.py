@@ -5,6 +5,7 @@ import argparse
 from datetime import datetime
 import pytz
 from pathlib import Path
+import os
 
 CBR_URL = 'https://www.cbr.ru/scripts/XML_daily.asp?date_req='
 CBR_CURRENCY_CODES = [840, 978, 156]
@@ -38,11 +39,11 @@ def update_gsheets(USDRUB_cell, CNYRUB_cell, CNYRUB_BBR_cell, today_CNY_BBR, tod
     # authorized_user_filename='secrets/authorized_user.json'
     # )
 
-    service_key_file = [i for i in Path('secrets').rglob("*service_key*")]
+    service_key_file = [i for i in Path('.').rglob("secrets/*service_key*")]
     if len(service_key_file) < 1:
         return print('Something wrong with service key file, please check it! ')
 
-    gc = gspread.service_account(filename=service_key_file)
+    gc = gspread.service_account(filename=service_key_file[0].absolute())
     sh = gc.open('cash')
 
     # fill USDRUB, CNYRUB CBR value
