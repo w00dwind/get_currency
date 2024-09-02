@@ -53,9 +53,12 @@ if __name__ == "__main__":
     today_CNY_BBR_datetime = datetime.strptime(today_CNY_BBR_datetime, "%d.%m.%Y_%H:%M:%S")
 
     # get values from google sheet, then convert to datetime
-    actual_at_datetime = [BBR_sheet.get_all_records()[-1]['actual_at_date'], BBR_sheet.get_all_records()[-1]['time']]
+    last_BBR_row = BBR_sheet.get_all_records()[-1]
+    actual_at_datetime = [last_BBR_row['actual_at_date'], last_BBR_row['time']]
     actual_at_datetime = '_'.join(actual_at_datetime)
     actual_at_datetime = datetime.strptime(actual_at_datetime, "%d.%m.%Y_%H:%M:%S")
+
+    last_CNYRUB_BBR = last_BBR_row['CNYRUB'] / 100
 
     # Debug
     # print(last_actual_at_time, actual_at_time)
@@ -66,7 +69,7 @@ if __name__ == "__main__":
     # print(f">>>> {actual_at_datetime, today_CNY_BBR_datetime}")
 
     print('_' * 20)
-    if actual_at_datetime < today_CNY_BBR_datetime:
+    if (actual_at_datetime < today_CNY_BBR_datetime) and (last_CNYRUB_BBR != today_CNY_BBR['CNY']['buy']):
         BBR_sheet.append_row(['CNYRUB_BBR',  # name
                               today_CNY_BBR['CNY']['buy'],  # BBR value
                               CNY_spread,  # spread
