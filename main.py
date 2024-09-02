@@ -42,22 +42,31 @@ if __name__ == "__main__":
     main_sheet = table.worksheet('total')
 
     last_actual_at = datetime.strptime(CBR_sheet.get_all_records()[-1]['actual_at_date'], "%d.%m.%Y").date()
-    # last_CNYRUB_CBR = CBR_sheet.get_all_records()[-1]['CNYRUB'] / 10000
+    last_CNYRUB_CBR = CBR_sheet.get_all_records()[-1]['CNYRUB'] / 10000
 
     today_CNY_BBR = get_bbr_currency()
     today_CBR = get_cbr_currency(CBR_URL, CBR_CURRENCY_CODES)
 
-    # last "actual at" time from table
-    last_actual_at_time = datetime.strptime(BBR_sheet.get_all_records()[-1]['time'], "%H:%M:%S")
-    # last "actual at" from web
-    actual_at_time = datetime.strptime(today_CNY_BBR['CNY']['time'], "%H:%M:%S")
+    # convert to datetime to compare dates BBR with last row google sheets
+    today_CNY_BBR_datetime = [today_CNY_BBR['CNY']['date'], today_CNY_BBR['CNY']['time']]
+    today_CNY_BBR_datetime = "_".join(today_CNY_BBR_datetime)
+    today_CNY_BBR_datetime = datetime.strptime(today_CNY_BBR_datetime, "%d.%m.%Y_%H:%M:%S")
+
+    # get values from google sheet, then convert to datetime
+    actual_at_datetime = [BBR_sheet.get_all_records()[-1]['actual_at_date'], BBR_sheet.get_all_records()[-1]['time']]
+    actual_at_datetime = '_'.join(actual_at_datetime)
+    actual_at_datetime = datetime.strptime(actual_at_datetime, "%d.%m.%Y_%H:%M:%S")
+
     # Debug
     # print(last_actual_at_time, actual_at_time)
     # print(last_actual_at_time > actual_at_time)
 
     CNY_spread = round(today_CBR['CNY'] - today_CNY_BBR['CNY']['buy'], 2)
 
-    if last_actual_at_time < actual_at_time:
+    # print(f">>>> {actual_at_datetime, today_CNY_BBR_datetime}")
+
+    print('_' * 20)
+    if actual_at_datetime < today_CNY_BBR_datetime:
         BBR_sheet.append_row(['CNYRUB_BBR',  # name
                               today_CNY_BBR['CNY']['buy'],  # BBR value
                               CNY_spread,  # spread
@@ -71,11 +80,13 @@ if __name__ == "__main__":
         print('BBR sheet updated successfully ')
 
     else:
-        print('_' * 20)
+
         print('BBR sheet is up to date, no update needed.')
+    print('\n')
 
-
-    if last_actual_at != now_date:
+    # if last_actual_at != now_date:
+    # print(f">>>>> {last_CNYRUB_CBR, today_CBR['CNY']}")
+    if last_CNYRUB_CBR != today_CBR['CNY']:
         now_date = datetime.strftime(now, "%Y-%m-%d")
         now_time = datetime.strftime(now, "%H:%M:%S")
 
